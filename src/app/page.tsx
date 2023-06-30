@@ -8,9 +8,18 @@ export default async function Home({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const page = typeof searchParams.page === "string" ? +searchParams.page : 1;
+  const perPage = 7;
+  const totalUsers = await prisma.user.count();
+  const totalPages = Math.ceil(totalUsers / perPage);
+
+  const page =
+    typeof searchParams.page === "string" &&
+    +searchParams.page > 1 &&
+    +searchParams.page <= totalPages
+      ? +searchParams.page
+      : 1;
   const users: User[] = await prisma.user.findMany({
-    take: 6,
+    take: perPage,
     skip: (page - 1) * 6,
   });
 
@@ -90,10 +99,33 @@ export default async function Home({
           </div>
         </div>
       </div>
-      <div>
-        <Link className="text-gray-900" href={`/?page=${page + 1}`}>
-          Next
-        </Link>
+      <div className="mt-4 flex items-center justify-between text-gray-900">
+        <p className="text-sm text-gray-700">
+          Showing{" "}
+          <span className="font-semibold">{(page - 1) * perPage + 1}</span> to{" "}
+          <span className="font-semibold">
+            {Math.min(page * perPage, totalUsers)}
+          </span>{" "}
+          of <span className="font-semibold">{totalUsers}</span> users
+        </p>
+        <div className="space-x-2">
+          <Link
+            href={page > 2 ? `/?page=${page - 1}` : "/"}
+            className={`${
+              page === 1 ? "pointer-events-none opacity-50" : ""
+            } inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50`}
+          >
+            Previous
+          </Link>
+          <Link
+            href={page < totalPages ? `/?page=${page + 1}` : `/?page=${page}`}
+            className={`${
+              page >= totalPages ? "pointer-events-none opacity-50" : ""
+            } inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50`}
+          >
+            Next
+          </Link>
+        </div>
       </div>
     </div>
   );
