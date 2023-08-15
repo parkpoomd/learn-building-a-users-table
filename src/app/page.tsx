@@ -2,14 +2,23 @@ import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
 import { Search, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { SearchInput } from "./search-input";
 
 export default async function Home({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
+  const search =
+    typeof searchParams.search === "string" ? searchParams.search : undefined;
   const perPage = 7;
-  const totalUsers = await prisma.user.count();
+  const totalUsers = await prisma.user.count({
+    where: {
+      name: {
+        contains: search,
+      },
+    },
+  });
   const totalPages = Math.ceil(totalUsers / perPage);
 
   const page =
@@ -21,24 +30,18 @@ export default async function Home({
   const users: User[] = await prisma.user.findMany({
     take: perPage,
     skip: (page - 1) * 6,
+    where: {
+      name: {
+        contains: search,
+      },
+    },
   });
 
   return (
     <div className="min-h-screen bg-gray-50 px-8 pt-12">
       <div className="flex items-center justify-between">
         <div className="w-80">
-          <div className="relative mt-1 rounded-md shadow-sm">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            </div>
-            <input
-              type="text"
-              name="search"
-              id="search"
-              className="block w-full rounded-md border-gray-300 pl-10 text-sm focus:border-gray-400 focus:outline-none focus:ring-0"
-              placeholder="Search"
-            />
-          </div>
+          <SearchInput search={search} />
         </div>
         <div className="ml-16 mt-0 flex-none">
           <button
