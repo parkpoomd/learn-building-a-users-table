@@ -3,6 +3,8 @@ import { User } from "@prisma/client";
 import { Search, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { SearchInput } from "./search-input";
+import { Suspense } from "react";
+import { Spinner } from "./components/spinner";
 
 export default async function Home({
   searchParams,
@@ -12,7 +14,46 @@ export default async function Home({
   const search =
     typeof searchParams.search === "string" ? searchParams.search : undefined;
 
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50 px-8 pt-12">
+      <div className="flex items-center justify-between">
+        <div className="mt-1 w-80">
+          <SearchInput search={search} />
+        </div>
+        <div className="ml-16 mt-0 flex-none">
+          <button
+            type="button"
+            className="block rounded-md bg-indigo-600 px-3 py-1.5 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Add user
+          </button>
+        </div>
+      </div>
+
+      <Suspense fallback={<Loading />}>
+        <UsersTable searchParams={searchParams} />
+      </Suspense>
+    </div>
+  );
+}
+
+function Loading() {
+  return (
+    <div className="flex h-full grow items-center justify-center bg-gray-50">
+      <Spinner className="-mt-16 w-8 animate-spin" />
+    </div>
+  );
+}
+
+async function UsersTable({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  const search =
+    typeof searchParams.search === "string" ? searchParams.search : undefined;
 
   const perPage = 7;
   const totalUsers = await prisma.user.count({
@@ -52,20 +93,7 @@ export default async function Home({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-8 pt-12">
-      <div className="flex items-center justify-between">
-        <div className="mt-1 w-80">
-          <SearchInput search={search} />
-        </div>
-        <div className="ml-16 mt-0 flex-none">
-          <button
-            type="button"
-            className="block rounded-md bg-indigo-600 px-3 py-1.5 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add user
-          </button>
-        </div>
-      </div>
+    <div>
       <div className="mt-8 flow-root">
         <div className="-mx-6 -my-2">
           <div className="inline-block min-w-full px-6 py-2 align-middle">
