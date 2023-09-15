@@ -12,6 +12,8 @@ export default async function Home({
   const search =
     typeof searchParams.search === "string" ? searchParams.search : undefined;
 
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
   const perPage = 7;
   const totalUsers = await prisma.user.count({
     where: {
